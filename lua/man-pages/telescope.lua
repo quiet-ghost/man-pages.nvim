@@ -49,12 +49,23 @@ function M.man_pages(opts)
     },
   }, opts)
   
+  -- Load man pages (with progress notification)
+  vim.notify("Loading man pages...", vim.log.levels.INFO)
   local pages = utils.get_available_man_pages()
   
   if #pages == 0 then
-    vim.notify("No man pages found", vim.log.levels.WARN)
+    vim.notify("No man pages found. Checking if 'man -k' works...", vim.log.levels.WARN)
+    -- Debug: try to run the command directly
+    local test_result = vim.fn.system("man -k . | head -5")
+    if test_result and test_result ~= "" then
+      vim.notify("Command works but parsing failed. Please report this issue.", vim.log.levels.ERROR)
+    else
+      vim.notify("'man -k' command failed. Please check your man-db installation.", vim.log.levels.ERROR)
+    end
     return
   end
+  
+  vim.notify(string.format("Loaded %d man pages", #pages), vim.log.levels.INFO)
   
   pickers.new(opts, {
     prompt_title = " Man Pages",

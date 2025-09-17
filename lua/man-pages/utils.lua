@@ -8,15 +8,9 @@ function M.get_man_page(name, section)
     cmd = string.format("man %s 2>/dev/null", name)
   end
   
-  local handle = io.popen(cmd)
-  if not handle then
-    return nil
-  end
+  local result = vim.fn.system(cmd)
   
-  local result = handle:read("*a")
-  handle:close()
-  
-  if result == "" then
+  if vim.v.shell_error ~= 0 or not result or result == "" then
     return nil
   end
   
@@ -24,34 +18,51 @@ function M.get_man_page(name, section)
 end
 
 function M.get_available_man_pages()
-  local cmd = "man -k . 2>/dev/null | head -1000"
-  local handle = io.popen(cmd)
-  if not handle then
-    return {}
+  -- Use apropos which is more reliable across systems
+  local cmd = "apropos -s 1,2,3,4,5,6,7,8 . 2>/dev/null || man -k . 2>/dev/null"
+  local result = vim.fn.system(cmd)
+
+  if not result or result == "" or vim.v.shell_error ~= 0 then
+    -- Fallback: try without section filter
+    cmd = "apropos . 2>/dev/null || man -k . 2>/dev/null"
+    result = vim.fn.system(cmd)
+
+    if not result or result == "" or vim.v.shell_error ~= 0 then
+      return {}
+    end
   end
-  
-  local result = handle:read("*a")
-  handle:close()
-  
+
   local pages = {}
   local seen = {}
-  
+  local count = 0
+
   for line in result:gmatch("[^\r\n]+") do
-    local name, section, description = line:match("^([^%s]+)%s*%((%d+[^%)]*%)%)%s*%-%s*(.*)$")
+    if count >= 500 then break end  -- Limit results for performance
+
+    -- Match various man page formats
+    -- Format 1: name (section) - description
+    -- Format 2: name(section) - description
+    -- Format 3: name (section)     - description (with spaces)
+    local name, section, description = line:match("^([^%s%(]+)[%s]*%(([^%)]+)%)[%s]*[-–—]+%s*(.*)$")
+
     if name and section and description then
-      local key = name .. "(" .. section:gsub("[%(%)]", "") .. ")"
+      -- Clean up section
+      section = section:gsub("^%s*(.-)%s*$", "%1")
+      local key = name .. "(" .. section .. ")"
+
       if not seen[key] then
         seen[key] = true
+        count = count + 1
         table.insert(pages, {
           name = name,
-          section = section:gsub("[%(%)]", ""),
+          section = section,
           description = description:sub(1, 80),
-          display = string.format("%-20s %s", key, description:sub(1, 60))
+          display = string.format("%-25s %s", key, description:sub(1, 55))
         })
       end
     end
   end
-  
+
   return pages
 end
 
