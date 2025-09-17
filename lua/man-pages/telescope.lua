@@ -39,7 +39,7 @@ function M.man_pages(opts)
 			height = 0.95,
 			preview_height = 0.75,
 		},
-		winblend = 20,
+		winblend = 50,
 		border = true,
 		borderchars = {
 			prompt = { "─", "│", " ", "│", "┌", "┐", "│", "│" },
