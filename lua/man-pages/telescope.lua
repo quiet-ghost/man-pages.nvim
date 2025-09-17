@@ -32,15 +32,14 @@ function M.man_pages(opts)
 
 	-- Default floating window configuration
 	opts = vim.tbl_deep_extend("force", {
-		layout_strategy = "horizontal",
+		layout_strategy = "vertical",
 		layout_config = {
-			prompt_position = "bottom",
-			width = 0.85,
-			height = 0.9,
-			preview_height = 0.6,
-			mirror = false,
+			prompt_position = "top",
+			width = 0.95,
+			height = 0.95,
+			preview_height = 0.75,
 		},
-		winblend = 0,
+		winblend = 20,
 		border = true,
 		borderchars = {
 			prompt = { "─", "│", " ", "│", "┌", "┐", "│", "│" },

@@ -8,11 +8,11 @@ M.config = {
     layout_strategy = "vertical",
     layout_config = {
       prompt_position = "top",
-      width = 0.85,
-      height = 0.9,
-      preview_height = 0.6,
+      width = 0.95,
+      height = 0.95,
+      preview_height = 0.75,
     },
-    winblend = 10,
+    winblend = 20,
   },
 }
 

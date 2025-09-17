@@ -18,13 +18,13 @@ function M.get_man_page(name, section)
 end
 
 function M.get_available_man_pages()
-  -- Use apropos which is more reliable across systems
-  local cmd = "apropos -s 1,2,3,4,5,6,7,8 . 2>/dev/null || man -k . 2>/dev/null"
+  -- Use man -k as specified in README
+  local cmd = "man -k . 2>/dev/null"
   local result = vim.fn.system(cmd)
 
   if not result or result == "" or vim.v.shell_error ~= 0 then
-    -- Fallback: try without section filter
-    cmd = "apropos . 2>/dev/null || man -k . 2>/dev/null"
+    -- Fallback: try apropos
+    cmd = "apropos . 2>/dev/null"
     result = vim.fn.system(cmd)
 
     if not result or result == "" or vim.v.shell_error ~= 0 then
