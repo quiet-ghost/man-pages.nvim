@@ -35,11 +35,11 @@ function M.man_pages(opts)
 		layout_strategy = "vertical",
 		layout_config = {
 			prompt_position = "top",
-			width = 0.95,
-			height = 0.95,
-			preview_height = 0.75,
+			width = 0.55,
+			height = 0.75,
+			preview_height = 0.65,
 		},
-		winblend = 50,
+		winblend = 80,
 		border = true,
 		borderchars = {
 			prompt = { "─", "│", " ", "│", "┌", "┐", "│", "│" },
