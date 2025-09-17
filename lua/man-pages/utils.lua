@@ -24,7 +24,7 @@ function M.get_man_page(name, section)
 end
 
 function M.get_available_man_pages()
-  local cmd = "man -k . 2>/dev/null | head -500"
+  local cmd = "man -k . 2>/dev/null | head -1000"
   local handle = io.popen(cmd)
   if not handle then
     return {}
@@ -34,15 +34,21 @@ function M.get_available_man_pages()
   handle:close()
   
   local pages = {}
+  local seen = {}
+  
   for line in result:gmatch("[^\r\n]+") do
     local name, section, description = line:match("^([^%s]+)%s*%((%d+[^%)]*%)%)%s*%-%s*(.*)$")
     if name and section and description then
-      table.insert(pages, {
-        name = name,
-        section = section:gsub("[%(%)]", ""),
-        description = description,
-        display = string.format("%s(%s) - %s", name, section:gsub("[%(%)]", ""), description)
-      })
+      local key = name .. "(" .. section:gsub("[%(%)]", "") .. ")"
+      if not seen[key] then
+        seen[key] = true
+        table.insert(pages, {
+          name = name,
+          section = section:gsub("[%(%)]", ""),
+          description = description:sub(1, 80),
+          display = string.format("%-20s %s", key, description:sub(1, 60))
+        })
+      end
     end
   end
   

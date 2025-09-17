@@ -3,7 +3,16 @@ local M = {}
 M.config = {
   keymaps = {
     search = "<leader>mp",
-    browse = "<leader>mb",
+  },
+  telescope = {
+    layout_strategy = "vertical",
+    layout_config = {
+      prompt_position = "top",
+      width = 0.85,
+      height = 0.9,
+      preview_height = 0.6,
+    },
+    winblend = 10,
   },
 }
 
@@ -12,33 +21,13 @@ function M.setup(opts)
   
   if M.config.keymaps.search then
     vim.keymap.set("n", M.config.keymaps.search, function()
-      require("man-pages.telescope").search_man_page()
+      require("man-pages.telescope").man_pages(M.config.telescope)
     end, { desc = "Search man pages" })
   end
   
-  if M.config.keymaps.browse then
-    vim.keymap.set("n", M.config.keymaps.browse, function()
-      require("man-pages.telescope").man_pages()
-    end, { desc = "Browse all man pages" })
-  end
-  
-  vim.api.nvim_create_user_command("ManSearch", function(args)
-    if args.args and args.args ~= "" then
-      local utils = require("man-pages.utils")
-      local content = utils.get_man_page(args.args)
-      if content then
-        vim.cmd("Man " .. args.args)
-      else
-        require("man-pages.telescope").search_man_page()
-      end
-    else
-      require("man-pages.telescope").search_man_page()
-    end
-  end, { nargs = "?", desc = "Search for man pages" })
-  
-  vim.api.nvim_create_user_command("ManBrowse", function()
-    require("man-pages.telescope").man_pages()
-  end, { desc = "Browse all available man pages" })
+  vim.api.nvim_create_user_command("ManPages", function()
+    require("man-pages.telescope").man_pages(M.config.telescope)
+  end, { desc = "Search and browse man pages with Telescope" })
 end
 
 return M

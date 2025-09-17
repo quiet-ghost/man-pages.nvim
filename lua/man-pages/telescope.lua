@@ -30,6 +30,25 @@ end
 function M.man_pages(opts)
   opts = opts or {}
   
+  -- Default floating window configuration
+  opts = vim.tbl_deep_extend("force", {
+    layout_strategy = "vertical",
+    layout_config = {
+      prompt_position = "top",
+      width = 0.85,
+      height = 0.9,
+      preview_height = 0.6,
+      mirror = false,
+    },
+    winblend = 10,
+    border = true,
+    borderchars = {
+      prompt = { "─", "│", " ", "│", "┌", "┐", "│", "│" },
+      results = { "─", "│", "─", "│", "├", "┤", "┘", "└" },
+      preview = { "─", "│", "─", "│", "┌", "┐", "┘", "└" },
+    },
+  }, opts)
+  
   local pages = utils.get_available_man_pages()
   
   if #pages == 0 then
@@ -38,7 +57,9 @@ function M.man_pages(opts)
   end
   
   pickers.new(opts, {
-    prompt_title = "Man Pages",
+    prompt_title = " Man Pages",
+    results_title = " Available Pages",
+    preview_title = " Preview",
     finder = finders.new_table({
       results = pages,
       entry_maker = function(entry)
@@ -64,61 +85,6 @@ function M.man_pages(opts)
   }):find()
 end
 
-function M.search_man_page(opts)
-  opts = opts or {}
-  
-  vim.ui.input({ prompt = "Enter man page name: " }, function(input)
-    if not input or input == "" then
-      return
-    end
-    
-    local content = utils.get_man_page(input)
-    if content then
-      vim.cmd("Man " .. input)
-    else
-      local pages = utils.get_available_man_pages()
-      local filtered = {}
-      
-      for _, page in ipairs(pages) do
-        if page.name:lower():find(input:lower(), 1, true) then
-          table.insert(filtered, page)
-        end
-      end
-      
-      if #filtered == 0 then
-        vim.notify("No man pages found matching: " .. input, vim.log.levels.WARN)
-        return
-      elseif #filtered == 1 then
-        vim.cmd("Man " .. filtered[1].section .. " " .. filtered[1].name)
-      else
-        pickers.new(opts, {
-          prompt_title = "Man Pages - " .. input,
-          finder = finders.new_table({
-            results = filtered,
-            entry_maker = function(entry)
-              return {
-                value = entry,
-                display = entry.display,
-                ordinal = entry.name .. " " .. entry.description,
-              }
-            end,
-          }),
-          sorter = conf.generic_sorter(opts),
-          previewer = create_previewer(),
-          attach_mappings = function(prompt_bufnr, map)
-            actions.select_default:replace(function()
-              actions.close(prompt_bufnr)
-              local selection = action_state.get_selected_entry()
-              if selection then
-                vim.cmd("Man " .. selection.value.section .. " " .. selection.value.name)
-              end
-            end)
-            return true
-          end,
-        }):find()
-      end
-    end
-  end)
-end
+
 
 return M
